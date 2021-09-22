@@ -10,10 +10,10 @@ class Carrito {
     next();
   }
 
-  getCarrito(req: Request, res: Response) {
-    const id = Number(req.params.id);
+  async getCarrito(req: Request, res: Response) {
+    const id = req.params.id;
     try {
-      const carrito = carritoPersistencia.leer(id);
+      const carrito = await carritoPersistencia.leer(id);
       return res.json({
         data: carrito,
       });
@@ -24,11 +24,11 @@ class Carrito {
     }
   }
 
-  addProducts(req: Request, res: Response) {
+  async addProducts(req: Request, res: Response) {
     const { producto } = req.body;
-    const idCarrito = Number(req.params.id_carrito);
+    const idCarrito = req.params.id_carrito;
     try {
-      const newItem = carritoPersistencia.guardar(producto, idCarrito);
+      const newItem = await carritoPersistencia.guardar(producto, idCarrito);
       if (newItem) {
         return res.json({
           msg: 'carrito agregado con exito',
@@ -43,11 +43,11 @@ class Carrito {
     }
   }
 
-  deleteProduct(req: Request, res: Response) {
-    const idProduct = Number(req.body.id_product);
-    const idCarrito = Number(req.params.id_carrito);
+  async deleteProduct(req: Request, res: Response) {
+    const idProduct = req.body.id_product;
+    const idCarrito = req.params.id_carrito;
     try {
-      const borrado = carritoPersistencia.borrar(idProduct, idCarrito);
+      const borrado = await carritoPersistencia.borrar(idProduct, idCarrito);
       if (borrado) {
         return res.json({
           msg: 'producto borrado del carrito con exito',

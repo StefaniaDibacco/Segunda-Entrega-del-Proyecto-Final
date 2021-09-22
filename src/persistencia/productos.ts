@@ -1,14 +1,21 @@
-import Product from '../interfaces/producto';
-import fs from 'fs';
-import path from 'path';
+import {
+  ProductI,
+  newProductI,
+  ProductQuery,
+  ProductClassI,
+} from '../interfaces/producto';
 
-let elementos: Product[] = require('./../db/productos');
+import env from 'dotenv';
+env.config();
 
-class Productos {
+const DBController = require(`./../dbController/${process.env.DB_CONFIG}.ts`);
+
+class Productos implements ProductClassI {
   // Metodo para leer mis productos
-  leer(): Product[] {
+  async leer(): Promise<ProductI[]> {
     try {
-      return elementos;
+      /** leer generico por db elegida con await */
+      return await DBController.leerP();
     } catch (error) {
       console.log('No hay productos en el listado');
       return [];
@@ -16,44 +23,28 @@ class Productos {
   }
 
   // Metodo para agregar productos
-  guardar(
-    nombre: string,
-    precio: number,
-    foto: string,
-    descripcion: string,
-    codigo: string,
-    stock: number
-  ): Product | undefined {
+  async guardar(data: newProductI) {
     try {
-      if (typeof nombre !== 'string')
-        throw new Error('Nombre tiene que ser string');
-      if (isNaN(precio)) throw new Error('Precio tiene que ser un nro');
-      if (typeof foto !== 'string')
-        throw new Error('Foto tiene que ser string de url');
-
-      const elemento = {
-        id: elementos.length + 1,
+      const elemento: newProductI = {
         timestamp: Date.now(),
-        nombre,
-        descripcion,
-        precio,
-        foto,
-        codigo,
-        stock,
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+        precio: data.precio,
+        foto: data.foto,
+        codigo: data.codigo,
+        stock: data.stock,
       };
 
-      elementos.push(elemento);
-      this.actualizarDB(elementos);
-      return elemento;
+      return await DBController.guardarP(elemento);
     } catch (error) {
       console.log('ERROR: No se pudo agregar un producto. ' + error);
     }
   }
 
   // Metodo para leer un producto
-  leerUno(id: number): Product | undefined {
+  async leerUno(id: string) {
     try {
-      const producto = elementos.find((aProduct) => aProduct.id === id);
+      const producto = await DBController.leerUnP(id);
       return producto;
     } catch (error) {
       console.log('Producto no encontrado');
@@ -61,62 +52,21 @@ class Productos {
   }
 
   // Metodo para actualizar productos
-  actualizar(
-    id: number,
-    nombre: string | null = null,
-    precio: number | null = null,
-    foto: string | null = null,
-    descripcion: string = '',
-    codigo: string = '',
-    stock: number
-  ): Product | undefined {
+  async actualizar(id: string, newProductData: ProductQuery) {
     try {
-      if (typeof nombre !== 'string')
-        throw new Error('Titulo tiene que ser string');
-      if (typeof precio !== 'number')
-        throw new Error('Price tiene que ser un nro');
-      if (typeof foto !== 'string')
-        throw new Error('Thumbnail tiene que ser string de url');
-
-      const index = elementos.map((aProduct) => aProduct.id).indexOf(id);
-      if (index === -1) {
-        throw new Error('Producto no encontrado');
-      }
-
-      elementos[index].nombre = nombre;
-      elementos[index].precio = precio;
-      elementos[index].foto = foto;
-      elementos[index].descripcion = descripcion;
-      elementos[index].codigo = codigo;
-      elementos[index].stock = stock;
-
-      this.actualizarDB(elementos);
-      return elementos[index];
+      return await DBController.actualizarP(id, newProductData);
     } catch (error) {
       console.log(error);
     }
   }
 
   // Metodo para borrar un producto
-  borrarUno(id: number): Product | undefined {
+  async borrarUno(id: string) {
     try {
-      const idBuscado = id;
-      const productoEliminado = elementos.find(
-        (aProduct) => aProduct.id === idBuscado
-      );
-      elementos = elementos.filter((aProduct) => aProduct.id !== idBuscado);
-      this.actualizarDB(elementos);
-      return productoEliminado;
+      return await DBController.borrarUnP(id);
     } catch (error) {
       console.log(`Producto no encontrado`);
     }
-  }
-
-  actualizarDB(data: Product[]) {
-    fs.writeFileSync(
-      path.resolve(__dirname, '../db/productos.json'),
-      JSON.stringify(data)
-    );
   }
 }
 

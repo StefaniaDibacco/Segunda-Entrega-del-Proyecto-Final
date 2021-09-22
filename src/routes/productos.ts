@@ -1,33 +1,34 @@
 import { Router } from 'express';
 import { productController } from '../controllers/productos';
 import { checkAdmin } from '../middleware/admin';
+import asyncHandler from 'express-async-handler';
 
 const router = Router();
 
-router.get('/', productController.getProducts);
+router.get('/', asyncHandler(productController.getProducts));
 
 router.get(
   '/listar/:id?',
   productController.checkProductExists,
-  productController.getProducts
+  asyncHandler(productController.getProducts)
 );
 
 router.post(
   '/agregar',
   [checkAdmin, productController.checkAddProducts],
-  productController.addProducts
+  asyncHandler(productController.addProducts)
 );
 
 router.put(
   '/actualizar/:id',
   [checkAdmin, productController.checkProductExists],
-  productController.updateProducts
+  asyncHandler(productController.updateProducts)
 );
 
 router.delete(
   '/borrar/:id',
   [checkAdmin, productController.checkProductExists],
-  productController.deleteProducts
+  asyncHandler(productController.deleteProducts)
 );
 
 export default router;

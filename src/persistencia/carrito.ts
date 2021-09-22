@@ -1,15 +1,15 @@
-import CarritoI from '../interfaces/carrito';
-import ProductI from '../interfaces/producto';
-import fs from 'fs';
-import path from 'path';
+import { ProductI } from '../interfaces/producto';
 
-const carritos: CarritoI[] = require('./../db/carritos');
+import env from 'dotenv';
+env.config();
+
+const DBController = require(`./../dbController/${process.env.DB_CONFIG}.ts`);
 
 class Carrito {
   // Metodo para leer productos del carrito
-  leer(id: number): CarritoI | undefined | [] {
+  async leer(_id: string) {
     try {
-      const carrito = carritos.find((c) => c.id === id);
+      const carrito = await DBController.leerC(_id);
       return carrito;
     } catch (error) {
       console.log('No hay productos en el listado');
@@ -18,15 +18,9 @@ class Carrito {
   }
 
   // Metodo para agregar productos al carrito
-  guardar(producto: ProductI, idCarrito: number) {
+  async guardar(producto: ProductI, idCarrito: string) {
     try {
-      const index = carritos.map((carrito) => carrito.id).indexOf(idCarrito);
-      if (index === -1) {
-        throw new Error('Carrito no encontrado');
-      }
-      carritos[index].productos.push(producto);
-      this.actualizarDB(carritos);
-      return true;
+      return await DBController.guardarC(producto, idCarrito);
     } catch (error) {
       console.log('ERROR: No se pudo agregar un producto. ' + error);
       return false;
@@ -34,28 +28,13 @@ class Carrito {
   }
 
   // Metodo para borrar productos del carrito
-  borrar(idProducto: number, idCarrito: number) {
+  async borrar(idProducto: string, idCarrito: string) {
     try {
-      const index = carritos.map((carrito) => carrito.id).indexOf(idCarrito);
-      if (index === -1) {
-        throw new Error('Carrito no encontrado');
-      }
-      carritos[index].productos = carritos[index].productos.filter(
-        (aProduct) => aProduct.id !== idProducto
-      );
-      this.actualizarDB(carritos);
-      return true;
+      return await DBController.borrarUnPdeC(idCarrito, idProducto);
     } catch (error) {
       console.log('ERROR: No se pudo agregar un producto. ' + error);
       return false;
     }
-  }
-
-  actualizarDB(data: CarritoI[]) {
-    fs.writeFileSync(
-      path.resolve(__dirname, '../db/carritos.json'),
-      JSON.stringify(data)
-    );
   }
 }
 

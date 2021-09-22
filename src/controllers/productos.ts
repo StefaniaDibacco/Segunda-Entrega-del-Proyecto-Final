@@ -3,35 +3,14 @@ import { productsPersistencia } from '../persistencia/productos';
 
 class Producto {
   checkAddProducts(req: Request, res: Response, next: NextFunction) {
-    // const { nombre, descripcion, precio, foto, codigo, stock } = req.body;
-
-    /* if (
-      !nombre ||
-      !precio ||
-      !descripcion ||
-      !foto ||
-      !codigo ||
-      !stock ||
-      typeof nombre !== 'string' ||
-      typeof descripcion !== 'string' ||
-      isNaN(precio) ||
-      typeof foto !== 'string' ||
-      isNaN(codigo) ||
-      isNaN(stock)
-    ) {
-      return res.status(400).json({
-        msg: 'Campos del body invalidos',
-      });
-    } */
-
     next();
   }
 
-  checkProductExists(req: Request, res: Response, next: NextFunction) {
+  async checkProductExists(req: Request, res: Response, next: NextFunction) {
     if (req.params.id) {
-      const id = Number(req.params.id);
+      const id = req.params.id;
 
-      const producto = productsPersistencia.leerUno(id);
+      const producto = await productsPersistencia.leerUno(id);
 
       if (!producto) {
         return res.status(404).json({
@@ -42,28 +21,20 @@ class Producto {
     next();
   }
 
-  getProducts(req: Request, res: Response) {
-    const id = Number(req.params.id);
+  async getProducts(req: Request, res: Response) {
+    const id = req.params.id;
 
     const producto = id
-      ? productsPersistencia.leerUno(id)
-      : productsPersistencia.leer();
+      ? await productsPersistencia.leerUno(id)
+      : await productsPersistencia.leer();
 
     res.json({
       data: producto,
     });
   }
 
-  addProducts(req: Request, res: Response) {
-    const { nombre, descripcion, precio, foto, codigo, stock } = req.body;
-    const newItem = productsPersistencia.guardar(
-      nombre,
-      precio,
-      foto,
-      descripcion,
-      codigo,
-      stock
-    );
+  async addProducts(req: Request, res: Response) {
+    const newItem = await productsPersistencia.guardar(req.body);
 
     res.json({
       msg: 'producto agregado con exito',
@@ -71,27 +42,18 @@ class Producto {
     });
   }
 
-  updateProducts(req: Request, res: Response) {
-    const id = Number(req.params.id);
-    const { nombre, precio, foto, descripcion, codigo, stock } = req.body;
-    const newItem = productsPersistencia.actualizar(
-      id,
-      nombre,
-      precio,
-      foto,
-      descripcion,
-      codigo,
-      stock
-    );
+  async updateProducts(req: Request, res: Response) {
+    const id = req.params.id;
+    const newItem = await productsPersistencia.actualizar(id, req.body);
     res.json({
       data: newItem,
       msg: 'actualizando producto',
     });
   }
 
-  deleteProducts(req: Request, res: Response) {
-    const id = Number(req.params.id);
-    productsPersistencia.borrarUno(id);
+  async deleteProducts(req: Request, res: Response) {
+    const id = req.params.id;
+    await productsPersistencia.borrarUno(id);
     res.json({
       msg: 'producto borrado',
     });

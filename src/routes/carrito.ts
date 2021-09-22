@@ -1,25 +1,26 @@
 import { Router } from 'express';
 import { carritoController } from '../controllers/carrito';
 import { checkUser } from '../middleware/user';
+import asyncHandler from 'express-async-handler';
 
 const router = Router();
 
 router.get(
   '/listar/:id?',
   [checkUser, carritoController.checkProductExists],
-  carritoController.getCarrito
+  asyncHandler(carritoController.getCarrito)
 );
 
 router.post(
   '/agregar/:id_carrito',
   [checkUser, carritoController.checkAddProducts],
-  carritoController.addProducts
+  asyncHandler(carritoController.addProducts)
 );
 
 router.delete(
   '/borrar/:id_carrito',
   [checkUser, carritoController.checkProductExists],
-  carritoController.deleteProduct
+  asyncHandler(carritoController.deleteProduct)
 );
 
 export default router;
