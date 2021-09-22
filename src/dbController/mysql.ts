@@ -1,16 +1,5 @@
 import knex from 'knex';
 import { ProductI, ProductQuery } from '../interfaces/producto';
-export const sqliteDB = knex({
-  client: 'mysql',
-  connection: {
-    host: '127.0.0.1',
-    port: 3306,
-    user: 'root',
-    password: '',
-    database: 'ecommerce',
-  },
-  useNullAsDefault: true,
-});
 
 export const mySQLDB = knex({
   client: 'mysql',
@@ -23,14 +12,14 @@ export const mySQLDB = knex({
   pool: { min: 0, max: 2 },
 });
 
-sqliteDB.schema.hasTable('carritos').then((exists) => {
+mySQLDB.schema.hasTable('carritos').then((exists) => {
   if (!exists) {
     console.log('NO EXISTE LA TABLA carritos.');
-    sqliteDB.schema
+    mySQLDB.schema
       .createTable('carritos', (tabla) => {
         tabla.string('_id');
         tabla.string('timestamp');
-        tabla.specificType('productos', 'text ARRAY');
+        tabla.string('id_producto');
       })
       .then(() => {
         console.log('DONE');
@@ -73,7 +62,17 @@ class DBController {
 
   async leerC(_id: string) {
     try {
-      return await _carritos.where({ _id }).select();
+      const result = await _carritos
+        .where({ _id })
+        .select()
+        .orderBy('_id', 'desc');
+      const productosIds = result.map((r) => r.id_producto);
+      const productos = _productos.where({ _id: productosIds }).select();
+      return {
+        _id,
+        timestamp: Date.now(),
+        productos,
+      };
     } catch (error) {
       console.log('No hay _productos en el listado');
       return [];
@@ -106,11 +105,16 @@ class DBController {
 
   async guardarC(producto: ProductI, idCarrito: string) {
     try {
-      const carrito: any = await _carritos.where({ _id: idCarrito }).select();
-      carrito.productos.push(producto);
-      const result = await _carritos
-        .where({ _id: idCarrito })
-        .update({ productos: carrito.productos });
+      // const carrito: any = await _carritos.where({ _id: idCarrito }).select();
+      // carrito.productos.push(producto);
+      const data = {
+        _id: idCarrito,
+        timestamp: Date.now(),
+        id_producto: producto._id,
+      };
+      const result = await _carritos.insert(data);
+      // .where({ _id: idCarrito })
+      // .update({ productos: carrito.productos });
       return result;
     } catch (error) {
       console.log('ERROR: No se pudo agregar un producto. ' + error);
@@ -147,13 +151,16 @@ class DBController {
 
   async borrarUnPdeC(idCarrito: string, _id: any) {
     try {
-      const carrito: any = await _carritos.where({ _id: idCarrito }).select();
-      const productos = carrito.productos.filter(
-        (p: { _id: any }) => p._id !== _id
-      );
+      // const carrito: any = await _carritos.where({ _id: idCarrito }).select();
+      // const productos = carrito.productos.filter(
+      // (p: { _id: any }) => p._id !== _id
+      // );
+      // const result = await _carritos
+      // .where({ _id: idCarrito })
+      // .update({ productos: productos });
       const result = await _carritos
-        .where({ _id: idCarrito })
-        .update({ productos: productos });
+        .where({ _id: idCarrito, id_producto: _id })
+        .del();
       return result;
     } catch (error) {
       console.log(`Producto no encontrado`);
