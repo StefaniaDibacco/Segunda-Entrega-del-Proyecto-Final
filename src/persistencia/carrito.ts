@@ -1,10 +1,14 @@
 import { ProductI } from '../interfaces/producto';
-
+import path from 'path';
 import env from 'dotenv';
 env.config();
 
-const DBController = require(`./../dbController/${process.env.DB_CONFIG}.ts`);
-
+const tipoMemoria = path.resolve(
+  __dirname,
+  `./../dbController/${process.env.DB_CONFIG}.ts`
+);
+const DBController = require(tipoMemoria);
+console.log(tipoMemoria);
 class Carrito {
   // Metodo para leer productos del carrito
   async leer(_id: string) {

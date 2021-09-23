@@ -168,4 +168,4 @@ class DBController {
   }
 }
 
-export default new DBController();
+export default DBController;

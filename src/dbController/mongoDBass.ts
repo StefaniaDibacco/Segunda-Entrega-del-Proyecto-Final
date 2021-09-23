@@ -1,32 +1,15 @@
 import mongoose from 'mongoose';
 import { ProductI, ProductQuery } from '../interfaces/producto';
 
-mongoose.connect(
-  'mongodb+srv://stefanidb:4diasmas@cluster0.7tqvz.mongodb.net/test'
-);
-
-const Schema = mongoose.Schema;
-
-const productos = new Schema({
-  timestamp: Number,
-  nombre: String,
-  descripcion: String,
-  codigo: String,
-  foto: String,
-  precio: Number,
-  stock: Number,
-});
-
-const carritos = new Schema({
-  _id: String,
-  timestamp: Number,
-  productos: Schema.Types.Mixed,
-});
-
-const _productos = mongoose.model('productos', productos);
-const _carritos = mongoose.model('carritos', carritos);
+import { _carritos, _productos } from './models';
 
 class DBController {
+  constructor() {
+    mongoose.connect(
+      'mongodb+srv://stefanidb:4diasmas@cluster0.7tqvz.mongodb.net/test'
+    );
+  }
+
   async leerP() {
     try {
       return await _productos.find({});
@@ -127,4 +110,4 @@ class DBController {
   }
 }
 
-export default new DBController();
+export default DBController;

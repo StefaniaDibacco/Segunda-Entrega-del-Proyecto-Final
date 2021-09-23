@@ -1,18 +1,13 @@
-import {
-  ProductI,
-  newProductI,
-  ProductQuery,
-  ProductClassI,
-} from '../interfaces/producto';
-
+import { newProductI, ProductQuery } from '../interfaces/producto';
+import TipoPersistencia from './dbconfig';
 import env from 'dotenv';
 env.config();
 
-const DBController = require(`./../dbController/${process.env.DB_CONFIG}.ts`);
+const DBController = TipoPersistencia.get(process.env.DB_CONFIG);
 
-class Productos implements ProductClassI {
+class Productos {
   // Metodo para leer mis productos
-  async leer(): Promise<ProductI[]> {
+  async leer() {
     try {
       /** leer generico por db elegida con await */
       return await DBController.leerP();

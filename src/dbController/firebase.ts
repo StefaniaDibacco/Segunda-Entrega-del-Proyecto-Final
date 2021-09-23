@@ -1,5 +1,5 @@
 import admin, { ServiceAccount } from 'firebase-admin';
-import { ProductI } from '../interfaces/producto';
+import { ProductI, ProductQuery } from '../interfaces/producto';
 import serviceAccount from './../../firebase.json';
 
 admin.initializeApp({
@@ -54,7 +54,7 @@ class DBController {
     return result;
   }
 
-  async actualizarUnP(_id: string, data: ProductI) {
+  async actualizarP(_id: string, data: ProductQuery) {
     await _productos.doc(_id).update(data);
     return this.leerUnP(_id);
   }
@@ -64,4 +64,4 @@ class DBController {
   }
 }
 
-export default new DBController();
+export default DBController;
